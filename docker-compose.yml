@@ -1,0 +1,53 @@
+services:
+  navidrome:
+    image: deluan/navidrome:latest
+    container_name: navipi
+    user: "${UID}:${GID}"
+    restart: unless-stopped
+    expose:
+      - "4533"
+
+    environment:
+      ND_SCANSCHEDULE: "${ND_SCANSCHEDULE:-1h}"
+      ND_LOGLEVEL: "${ND_LOGLEVEL:-info}"
+      ND_SESSIONTIMEOUT: "${ND_SESSIONTIMEOUT:-24h}"
+      ND_BASEURL: "${ND_BASEURL:-}"
+      ND_ENABLETRANSCODINGCONFIG: "${ND_ENABLETRANSCODINGCONFIG:-false}"
+      ND_DEFAULTTHEME: "${ND_DEFAULTTHEME:-Dark}"
+      ND_DEFAULTLANGUAGE: "${ND_DEFAULTLANGUAGE:-fr}"
+    volumes:
+      - ./data:/data
+      - ${MUSIC_DIR:-./music}:/music:ro
+    networks:
+      - navidrome_net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-" "http://localhost:4533/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddypi
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - navidrome_net
+    depends_on:
+      navidrome:
+        condition: service_healthy
+volumes:
+  caddy_data:
+  caddy_config:
+
+networks:
+  navidrome_net:
+    driver: bridge
