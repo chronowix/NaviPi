@@ -21,7 +21,7 @@ services:
     networks:
       - navidrome_net
     healthcheck:
-      test: ["CMD", "wget", "-qO-" "http://localhost:4533/ping"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:4533/ping"]
       interval: 30s
       timeout: 10s
       retries: 3
