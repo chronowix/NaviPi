@@ -1,0 +1,21 @@
+navip1.duckdns.org {
+    reverse_proxy navidrome:4533
+
+    tls {
+        dns duckdns {env.DUCKDNS_TOKEN}
+    }
+
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+
+    log {
+        output file /data/logs/navidrome_access.log {
+            roll_size 10mb
+            roll_keep 5
+        }
+    }
+}
