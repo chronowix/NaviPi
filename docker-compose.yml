@@ -4,8 +4,8 @@ services:
     container_name: navipi
     user: "${UID}:${GID}"
     restart: unless-stopped
-    expose:
-      - "4533"
+    ports:
+      - "4533:4533"
 
     environment:
       ND_SCANSCHEDULE: "${ND_SCANSCHEDULE:-1h}"
@@ -25,10 +25,10 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 30s
+      start_period: 60s
 
   caddy:
-    image: slothcroissant/caddy-duckdns:latest
+    build: .
     container_name: caddypi
     restart: unless-stopped
     ports:
@@ -46,6 +46,7 @@ services:
     depends_on:
       navidrome:
         condition: service_healthy
+
 volumes:
   caddy_data:
   caddy_config:
