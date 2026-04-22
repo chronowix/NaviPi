@@ -4,4 +4,5 @@ music/
 *.log
 .DS_Store
 Thumbs.db
-.ps1
+.ps1*.crt
+*.key

@@ -41,6 +41,8 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
+      - ./chronopi3.tail0ffe10.ts.net.crt:/etc/caddy/tailscale.crt:ro
+      - ./chronopi3.tail0ffe10.ts.net.key:/etc/caddy/tailscale.key:ro
     networks:
       - navidrome_net
     depends_on:

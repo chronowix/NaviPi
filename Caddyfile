@@ -1,3 +1,7 @@
+chronopi3.tail0ffe10.ts.net {
+	reverse_proxy navidrome:4533
+	tls /etc/caddy/tailscale.crt /etc/caddy/tailscale.key
+}
 navip1.duckdns.org {
     reverse_proxy navidrome:4533
 
