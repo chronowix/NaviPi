@@ -1,0 +1,13 @@
+.env
+data/
+music/
+*.log
+.DS_Store
+Thumbs.db
+.ps1
+*.crt
+*.key
+.idea/
+*.iml
+*.xml
+.vscode/
