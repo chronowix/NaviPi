@@ -81,7 +81,7 @@ def extract_metadata(audio_path: Path):
     try:
         audio = MutagenFile(audio_path, easy=True)
     except Exception as e:
-        print(f"  ⚠️  Impossible de lire les tags : {e}")
+        print(f"  ⚠️  Can't read tags : {e}")
         return None
 
     if audio is None:
@@ -110,7 +110,7 @@ def extract_metadata(audio_path: Path):
 
 
 def find_lyrics_get(meta: dict):
-    # Tente une recherche exacte via /api/get
+    # Try search via /api/get
     if not meta["duration"]:
         return None
 
@@ -137,7 +137,7 @@ def find_lyrics_get(meta: dict):
 
 
 def find_lyrics_search(meta: dict):
-    # Fallback : recherche plus permissive via /api/search si /get échoue
+    # Fallback : search via /api/search if /get fails
     params = {
         "track_name": meta["title"],
         "artist_name": meta["artist"],
@@ -152,12 +152,12 @@ def find_lyrics_search(meta: dict):
         if r.status_code == 200:
             results = r.json()
             if results:
-                # On prend le premier résultat pertinent qui a des paroles
+                # Take first result
                 for res in results:
                     if res.get("syncedLyrics") or res.get("plainLyrics"):
                         return res
     except requests.RequestException as e:
-        print(f"  ⚠️  Erreur réseau (search) : {e}")
+        print(f"  ⚠️  Network error on (search) : {e}")
     return None
 
 
@@ -172,12 +172,12 @@ def process_file(audio_path: Path, overwrite: bool, pause: float):
     print(f"\n🎵 {audio_path.name}")
 
     if lrc_path.exists() and not overwrite:
-        print("  ↪️  .lrc déjà présent, ignoré (utilise --overwrite pour forcer).")
+        print("  ↪️  .lrc already present, ignored (use the overwrite command).")
         return "skip"
 
     meta = extract_metadata(audio_path)
     if meta is None:
-        print("  ⚠️  Métadonnées insuffisantes (artiste/titre manquant), ignoré.")
+        print("  ⚠️  Insufficient metadata, ignored.")
         return "no_meta"
 
     print(f"  → {meta['artist']} - {meta['title']}"
@@ -188,16 +188,16 @@ def process_file(audio_path: Path, overwrite: bool, pause: float):
         result = find_lyrics_search(meta)
 
     if result is None:
-        print("  ❌ Aucune parole trouvée sur LRCLIB.")
+        print("  ❌ No lyrics found on lrclib.")
         return "not_found"
 
     if result.get("instrumental"):
-        print("  🎼 Piste instrumentale (pas de paroles).")
+        print("  🎼 Instrumental track.")
         return "instrumental"
 
     lyrics = result.get("syncedLyrics") or result.get("plainLyrics")
     if not lyrics:
-        print("  ❌ Résultat trouvé mais sans contenu de paroles.")
+        print("  ❌ Result found but no lyrics found in DB.")
         return "not_found"
 
     type_lyrics = "synchronisées" if result.get("syncedLyrics") else "texte brut"
@@ -216,10 +216,10 @@ def scan_dir(dir: Path, overwrite: bool, pause: float):
     )
 
     if not files:
-        print("Aucun fichier audio trouvé dans ce dossier.")
+        print("No audio file found in this directory.")
         return
 
-    print(f"📂 {len(files)} fichier(s) audio trouvé(s) dans {dir}\n")
+    print(f"📂 {len(files)} audio file(s) found in {dir}\n")
 
     stats = {"found": 0, "not_found": 0, "skip": 0, "no_meta": 0, "instrumental": 0}
 
@@ -228,12 +228,12 @@ def scan_dir(dir: Path, overwrite: bool, pause: float):
         stats[result] = stats.get(result, 0) + 1
 
     print("\n" + "=" * 40)
-    print("Résumé :")
+    print("Summary :")
     print(f"  ✅ Paroles trouvées      : {stats['found']}")
     print(f"  ❌ Non trouvées          : {stats['not_found']}")
     print(f"  🎼 Instrumentales        : {stats['instrumental']}")
     print(f"  ↪️  Déjà présentes (skip) : {stats['skip']}")
-    print(f"  ⚠️  Métadonnées absentes : {stats['no_meta']}")
+    print(f"  ⚠️  Métadonnées absentes : {stats['no_meta']}\n")
 
 
 def main():
@@ -269,7 +269,7 @@ def main():
                     continue
                 dir = (Path(DEFAULT_PATH) / Path(path).expanduser()).resolve()
                 while not dir.is_dir():
-                    print(f"Erreur : '{dir}' n'est pas un dossier valide.")
+                    print(f"Error : '{dir}' isn't a valid directory.")
                     if readline:
                         readline.set_completer(PathCompleter(DEFAULT_PATH, directories_only=True))
                     path = input("Directory path (or press Enter to cancel): ").strip()
@@ -288,7 +288,7 @@ def main():
                     continue
                 dir = (Path(DEFAULT_PATH) / Path(path).expanduser()).resolve()
                 while not dir.is_dir():
-                    print(f"Erreur : '{dir}' n'est pas un dossier valide.")
+                    print(f"Error : '{dir}' isn't a valid directory.")
                     if readline:
                         readline.set_completer(PathCompleter(DEFAULT_PATH, directories_only=True))
                     path = input("Directory path (or press Enter to cancel): ").strip()
@@ -308,10 +308,10 @@ def main():
                 file = (Path(DEFAULT_PATH) / Path(path).expanduser()).resolve()
                 while not file.is_file() or file.suffix.lower() not in AUDIO_EXTENSIONS:
                     if not file.is_file():
-                        print(f"Erreur : '{file}' n'est pas un fichier valide.")
+                        print(f"Error : '{file}' isn't a valid file.")
                     else:
-                        print(f"Erreur : '{file}' n'est pas un fichier audio supporté.")
-                        print(f"Extensions supportées : {', '.join(sorted(AUDIO_EXTENSIONS))}")
+                        print(f"Error : '{file}' isn't a supported audio file.")
+                        print(f"Supported extensions  : {', '.join(sorted(AUDIO_EXTENSIONS))}")
                     if readline:
                         readline.set_completer(PathCompleter(DEFAULT_PATH, directories_only=True))
                     
@@ -333,10 +333,10 @@ def main():
                 file = (Path(DEFAULT_PATH) / Path(path).expanduser()).resolve()
                 while not file.is_file() or file.suffix.lower() not in AUDIO_EXTENSIONS:
                     if not file.is_file():
-                        print(f"Erreur : '{file}' n'est pas un fichier valide.")
+                        print(f"Error : '{file}' isn't a valid file.")
                     else:
-                        print(f"Erreur : '{file}' n'est pas un fichier audio supporté.")
-                        print(f"Extensions supportées : {', '.join(sorted(AUDIO_EXTENSIONS))}")
+                        print(f"Error : '{file}' isn't a supported audio file.")
+                        print(f"Supported extensions : {', '.join(sorted(AUDIO_EXTENSIONS))}")
                     if readline:
                         readline.set_completer(PathCompleter(DEFAULT_PATH, directories_only=True))
                     path = input("Audio file path (or press Enter to cancel): ").strip()
